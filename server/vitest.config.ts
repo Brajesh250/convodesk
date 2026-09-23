@@ -12,6 +12,10 @@ export default defineConfig({
     env: {
       NODE_ENV: 'test',
       LOG_LEVEL: 'silent',
+      JWT_ACCESS_SECRET: 'test-secret-that-is-long-enough-for-hs256-signing',
+      BCRYPT_ROUNDS: '4', // fast hashing in tests
+      RATE_LIMIT_ENABLED: 'false', // limiter behaviour has its own dedicated test
+      APP_URL: 'http://localhost:4200',
     },
   },
 });

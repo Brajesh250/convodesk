@@ -12,6 +12,8 @@ beforeAll(async () => {
   const dbName = `test_${randomUUID().replaceAll('-', '')}`;
   process.env.MONGODB_URI = baseUri;
   await mongoose.connect(baseUri, { dbName });
+  // Build unique/TTL indexes up front so tests that rely on them (e.g. duplicate email) are deterministic.
+  await Promise.all(mongoose.modelNames().map((name) => mongoose.model(name).init()));
 });
 
 afterEach(async () => {

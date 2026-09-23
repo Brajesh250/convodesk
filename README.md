@@ -57,12 +57,42 @@ flowchart LR
   AG -- reply --> META
 ```
 
+## Tenant isolation
+
+Every tenant-owned document has an indexed, immutable `tenantId`. Isolation is enforced in two layers
+(full reasoning in [ADR-008](docs/DECISIONS.md)):
+
+```mermaid
+flowchart LR
+  R[HTTP request] --> A["authenticate<br/>verify JWT → req.auth.tenantId"]
+  A --> RR["requireRole(...)"]
+  RR --> H[route handler]
+  H --> REPO["TenantRepository(Model, req.auth.tenantId)<br/>adds { tenantId } to EVERY query"]
+  REPO --> G{"tenantScopedPlugin<br/>query has a single tenantId?"}
+  G -- yes --> DB[(MongoDB)]
+  G -- no --> X["throw TenantScopeError<br/>(fails loudly in tests)"]
+```
+
+- The tenant always comes from the **verified token**, never from the URL or body. That's why the API
+  has `/api/tenant`, with no id to tamper with.
+- Another tenant's record returns **404** (not 403), so ids don't reveal that a record exists.
+- `server/src/modules/tenant-isolation.test.ts` proves over HTTP that tenant A can't read or modify
+  tenant B's users, invites or settings, and that RBAC is enforced on the server.
+
+## Auth in one paragraph
+
+Signup creates a Tenant and its OWNER in one transaction. The API returns a **15-minute access token**
+(the SPA keeps it in memory) and sets a **rotating refresh token** in an httpOnly cookie scoped to
+`/api/auth`, stored server-side only as a hash. Replaying an old refresh token revokes the whole
+session family. Owners invite teammates with single-use links. The token sits in the URL `#fragment`,
+so it never reaches server logs. Roles are OWNER, AGENT and VIEWER, checked by `requireRole()` on the
+server and mirrored in the UI.
+
 _Detailed sections are added as each phase lands:_
 
 | Topic                           | Where / Phase |
 | ------------------------------- | ------------- |
 | Data model diagram              | Phase 3       |
-| Tenant isolation approach       | Phase 2       |
 | Channel adapter design          | Phase 5 / 7   |
 | LLM fallback design             | Phase 6       |
 | Free-tier trade-offs and limits | Phase 10      |

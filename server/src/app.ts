@@ -1,9 +1,14 @@
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { type Express } from 'express';
 import helmet from 'helmet';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
 import { httpLogger } from './middleware/http-logger.js';
+import { authRouter } from './modules/auth/auth.routes.js';
 import { healthRouter } from './modules/health/health.routes.js';
+import { invitesRouter } from './modules/invites/invites.routes.js';
+import { tenantRouter } from './modules/tenants/tenant.routes.js';
+import { usersRouter } from './modules/users/users.routes.js';
 
 export interface AppOptions {
   corsOrigins: string[];
@@ -40,10 +45,14 @@ export function createApp({ corsOrigins }: AppOptions): Express {
     }),
   );
   app.use(express.json({ limit: '100kb' }));
+  app.use(cookieParser());
   app.use(httpLogger);
 
   app.use(healthRouter);
-  // Feature routers are mounted under /api in later phases, e.g. app.use('/api/auth', authRouter)
+  app.use('/api/auth', authRouter());
+  app.use('/api/tenant', tenantRouter());
+  app.use('/api/users', usersRouter());
+  app.use('/api/invites', invitesRouter());
 
   app.use(notFoundHandler);
   app.use(errorHandler);
