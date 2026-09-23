@@ -1,0 +1,20 @@
+{
+  "name": "@convodesk/widget",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Embeddable web chat widget — one <script> tag, no framework",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@convodesk/shared": "*"
+  },
+  "devDependencies": {
+    "vite": "^8.3.0",
+    "vitest": "^4.1.11"
+  }
+}
