@@ -1,10 +1,15 @@
 import request from 'supertest';
-import { describe, expect, it } from 'vitest';
+import type { Express } from 'express';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { apiErrorSchema } from '@convodesk/shared';
 import { TEST_ORIGIN, buildTestApp } from './test/helpers.js';
 
 describe('app wiring', () => {
-  const app = buildTestApp();
+  // Built in beforeAll (not at collection time): createApp reads config that test setup provides.
+  let app: Express;
+  beforeAll(() => {
+    app = buildTestApp();
+  });
 
   it('returns a structured 404 with a request id for unknown routes', async () => {
     const res = await request(app).get('/api/does-not-exist');
